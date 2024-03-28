@@ -92,8 +92,8 @@ static void display_result(double result, unsigned long long *l, size_t llen, un
     }\
     t[NTESTS] = cpucycles();\
     clock_gettime(CLOCK_PROCESS_CPUTIME_ID, &stop);\
-    result = ((stop.tv_sec - start.tv_sec) * 1e6 + \
-        (stop.tv_nsec - start.tv_nsec) / 1e3) / (double)CORR;\
+    result = ((double)(stop.tv_sec - start.tv_sec) * 1e6 + \
+        (double)(stop.tv_nsec - start.tv_nsec) / 1e3) / (double)CORR;\
     display_result(result, t, NTESTS, MUL);
 #define MEASURT(TEXT, MUL, FNCALL)\
     MEASURE_GENERIC(\
@@ -146,10 +146,14 @@ int main(void)
 
     MEASURT("thash                ", 1, thash(block, block, 1, &ctx, (uint32_t*)addr));
     MEASURE("Generating keypair.. ", 1, crypto_sign_keypair(pk, sk));
+#if 0
     MEASURE("  - WOTS pk gen..    ", (1 << SPX_TREE_HEIGHT), wots_gen_pkx1(wots_pk, &ctx, (uint32_t *) addr));
+#endif
     MEASURE("Signing..            ", 1, crypto_sign(sm, &smlen, m, SPX_MLEN, sk));
+#if 0
     MEASURE("  - FORS signing..   ", 1, fors_sign(fors_sig, fors_pk, fors_m, &ctx, (uint32_t *) addr));
     MEASURE("  - WOTS pk gen..    ", SPX_D * (1 << SPX_TREE_HEIGHT), wots_gen_pkx1(wots_pk, &ctx, (uint32_t *) addr));
+#endif
     MEASURE("Verifying..          ", 1, crypto_sign_open(mout, &mlen, sm, smlen, pk));
 
     printf("Signature size: %d (%.2f KiB)\n", SPX_BYTES, SPX_BYTES / 1024.0);
