@@ -8,9 +8,16 @@
 #define initialize_hash_function SPX_NAMESPACE(initialize_hash_function)
 void initialize_hash_function(spx_ctx *ctx);
 
+#if 0
 #define prf_addr SPX_NAMESPACE(prf_addr)
 void prf_addr(unsigned char *out, const spx_ctx *ctx,
               const uint32_t addr[8]);
+#endif
+
+#define prf_hash_function SPX_NAMESPACE(prf_hash_function)
+void prf_hash_function(unsigned char *out, const spx_ctx *ctx,
+		              const uint32_t addr[8],
+			      const unsigned char *parent );
 
 #define gen_message_random SPX_NAMESPACE(gen_message_random)
 void gen_message_random(unsigned char *R, const unsigned char *sk_prf,

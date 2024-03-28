@@ -550,6 +550,9 @@ void shake256_inc_squeeze(uint8_t *output, size_t outlen, uint64_t *s_inc) {
 void shake256_absorb(uint64_t *s, const uint8_t *input, size_t inlen) {
     keccak_absorb(s, SHAKE256_RATE, input, inlen, 0x1F);
 }
+void shake128_absorb(uint64_t *s, const uint8_t *input, size_t inlen) {
+    keccak_absorb(s, SHAKE256_RATE, input, inlen, 0x1F);
+}
 
 /*************************************************
  * Name:        shake256_squeezeblocks
@@ -565,6 +568,9 @@ void shake256_absorb(uint64_t *s, const uint8_t *input, size_t inlen) {
  **************************************************/
 void shake256_squeezeblocks(uint8_t *output, size_t nblocks, uint64_t *s) {
     keccak_squeezeblocks(output, nblocks, s, SHAKE256_RATE);
+}
+void shake128_squeezeblocks(uint8_t *output, size_t nblocks, uint64_t *s) {
+    keccak_squeezeblocks(output, nblocks, s, SHAKE128_RATE);
 }
 
 /*************************************************
@@ -591,6 +597,36 @@ void shake256(uint8_t *output, size_t outlen,
 
     if (outlen) {
         shake256_squeezeblocks(t, 1, s);
+        for (size_t i = 0; i < outlen; ++i) {
+            output[i] = t[i];
+        }
+    }
+}
+
+/*************************************************
+ * Name:        shake128
+ *
+ * Description: SHAKE128 XOF with non-incremental API
+ *
+ * Arguments:   - uint8_t *output: pointer to output
+ *              - size_t outlen: requested output length in bytes
+ *              - const uint8_t *input: pointer to input
+ *              - size_t inlen: length of input in bytes
+ **************************************************/
+void shake128(uint8_t *output, size_t outlen,
+              const uint8_t *input, size_t inlen) {
+    size_t nblocks = outlen / SHAKE128_RATE;
+    uint8_t t[SHAKE128_RATE];
+    uint64_t s[25];
+
+    shake128_absorb(s, input, inlen);
+    shake128_squeezeblocks(output, nblocks, s);
+
+    output += nblocks * SHAKE128_RATE;
+    outlen -= nblocks * SHAKE128_RATE;
+
+    if (outlen) {
+        shake128_squeezeblocks(t, 1, s);
         for (size_t i = 0; i < outlen; ++i) {
             output[i] = t[i];
         }

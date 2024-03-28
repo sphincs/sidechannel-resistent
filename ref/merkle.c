@@ -28,6 +28,15 @@ void merkle_sign(uint8_t *sig, unsigned char *root,
     chain_lengths(steps, root);
     info.wots_steps = steps;
 
+    set_type(tree_addr, SPX_ADDR_TYPE_PRF_MERKLE);
+    initialize_prf_iter( &info.merkle_iter,
+		             /* Size of this PRF tree */
+		         (SPX_WOTS_LEN+1) * (1 << SPX_TREE_HEIGHT),
+			     /* Number of values we'll be generating */
+		         (SPX_WOTS_LEN+0) * (1 << SPX_TREE_HEIGHT),
+		          ctx->merkle_key[get_layer_addr(tree_addr)],
+			  ctx, tree_addr );
+
     set_type(&tree_addr[0], SPX_ADDR_TYPE_HASHTREE);
     set_type(&info.pk_addr[0], SPX_ADDR_TYPE_WOTSPK);
     copy_subtree_addr(&info.leaf_addr[0], wots_addr);

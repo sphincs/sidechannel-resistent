@@ -14,6 +14,8 @@ void initialize_hash_function(spx_ctx* ctx)
     (void)ctx; /* Suppress an 'unused parameter' warning. */
 }
 
+#if 0
+/* THIS IS THE PRF - IT SHOULD NEVER BE USED */
 /*
  * Computes PRF(pk_seed, sk_seed, addr)
  */
@@ -27,6 +29,22 @@ void prf_addr(unsigned char *out, const spx_ctx *ctx,
     memcpy(buf + SPX_N + SPX_ADDR_BYTES, ctx->sk_seed, SPX_N);
 
     shake256(out, SPX_N, buf, 2*SPX_N + SPX_ADDR_BYTES);
+}
+#endif
+
+/*
+ * Computes the hash function for the PRF
+ */
+void prf_hash_function(unsigned char *out, const spx_ctx *ctx,
+		       const uint32_t addr[8], const unsigned char *parent)
+{
+    unsigned char buf[4*SPX_N + SPX_ADDR_BYTES];
+
+    memcpy(buf, ctx->pub_seed, SPX_N);
+    memcpy(buf + SPX_N, addr, SPX_ADDR_BYTES);
+    memcpy(buf + SPX_N + SPX_ADDR_BYTES, parent, 3*SPX_N);
+
+    shake128(out, 3*SPX_N, buf, 4*SPX_N + SPX_ADDR_BYTES);
 }
 
 /**

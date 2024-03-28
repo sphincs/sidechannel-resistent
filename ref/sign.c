@@ -12,6 +12,7 @@
 #include "randombytes.h"
 #include "utils.h"
 #include "merkle.h"
+#include "prf.h"
 
 /*
  * Returns the length of a secret key, in bytes
@@ -58,19 +59,23 @@ int crypto_sign_seed_keypair(unsigned char *pk, unsigned char *sk,
     /* Initialize SK_SEED, SK_PRF and PUB_SEED from seed. */
     memcpy(sk, seed, CRYPTO_SEEDBYTES);
 
-    memcpy(pk, sk + 2*SPX_N, SPX_N);
+    memcpy(pk, sk + 4*SPX_N, SPX_N);
 
     memcpy(ctx.pub_seed, pk, SPX_N);
-    memcpy(ctx.sk_seed, sk, SPX_N);
+    memcpy(ctx.sk_seed, sk, 3*SPX_N);
 
     /* This hook allows the hash function instantiation to do whatever
        preparation or computation it needs, based on the public seed. */
     initialize_hash_function(&ctx);
 
-    /* Compute root node of the top-most subtree. */
-    merkle_gen_root(sk + 3*SPX_N, &ctx);
+    /* And set up the PRF (for an arbitrary message - we're only need the
+       top level Merkle tree, and that doesn't depend on the message) */
+    initialize_prf_key(0, 0, &ctx );
 
-    memcpy(pk + SPX_N, sk + 3*SPX_N, SPX_N);
+    /* Compute root node of the top-most subtree. */
+    merkle_gen_root(sk + 5*SPX_N, &ctx);
+
+    memcpy(pk + SPX_N, sk + 5*SPX_N, SPX_N);
 
     return 0;
 }
@@ -97,8 +102,8 @@ int crypto_sign_signature(uint8_t *sig, size_t *siglen,
 {
     spx_ctx ctx;
 
-    const unsigned char *sk_prf = sk + SPX_N;
-    const unsigned char *pk = sk + 2*SPX_N;
+    const unsigned char *sk_prf = sk + 3*SPX_N;
+    const unsigned char *pk = sk + 4*SPX_N;
 
     unsigned char optrand[SPX_N];
     unsigned char mhash[SPX_FORS_MSG_BYTES];
@@ -109,7 +114,7 @@ int crypto_sign_signature(uint8_t *sig, size_t *siglen,
     uint32_t wots_addr[8] = {0};
     uint32_t tree_addr[8] = {0};
 
-    memcpy(ctx.sk_seed, sk, SPX_N);
+    memcpy(ctx.sk_seed, sk, 3*SPX_N);
     memcpy(ctx.pub_seed, pk, SPX_N);
 
     /* This hook allows the hash function instantiation to do whatever
@@ -119,9 +124,7 @@ int crypto_sign_signature(uint8_t *sig, size_t *siglen,
     set_type(wots_addr, SPX_ADDR_TYPE_WOTS);
     set_type(tree_addr, SPX_ADDR_TYPE_HASHTREE);
 
-    /* Optionally, signing can be made non-deterministic using optrand.
-       This can help counter side-channel attacks that would benefit from
-       getting a large number of traces when the signer uses the same nodes. */
+    /* We need to make signing nondetermistic */
     randombytes(optrand, SPX_N);
     /* Compute the digest randomization value. */
     gen_message_random(sig, sk_prf, optrand, m, mlen, &ctx);
@@ -129,6 +132,9 @@ int crypto_sign_signature(uint8_t *sig, size_t *siglen,
     /* Derive the message digest and leaf index from R, PK and M. */
     hash_message(mhash, &tree, &idx_leaf, sig, pk, m, mlen, &ctx);
     sig += SPX_N;
+
+    /* Generate the subkeys for each of the Merkle and FORS trees */
+    initialize_prf_key(tree, idx_leaf, &ctx);
 
     set_tree_addr(wots_addr, tree);
     set_keypair_addr(wots_addr, idx_leaf);

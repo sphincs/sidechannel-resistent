@@ -14,6 +14,14 @@ void set_layer_addr(uint32_t addr[8], uint32_t layer)
 }
 
 /*
+ * Retrieve which level of Merkle tree we're working on
+ */
+uint32_t get_layer_addr(uint32_t addr[8])
+{
+    return ((unsigned char *)addr)[SPX_OFFSET_LAYER];
+}
+
+/*
  * Specify which Merkle tree within the level (the "tree address") we're working on
  */
 void set_tree_addr(uint32_t addr[8], uint64_t tree)
@@ -109,4 +117,12 @@ void set_tree_height(uint32_t addr[8], uint32_t tree_height)
 void set_tree_index(uint32_t addr[8], uint32_t tree_index)
 {
     u32_to_bytes(&((unsigned char *)addr)[SPX_OFFSET_TREE_INDEX], tree_index );
+}
+
+/*
+ * Specify the node within the PRF tree we are hashing
+ */
+void set_prf_index(uint32_t addr[8], uint32_t prf_index)
+{
+    u32_to_bytes(&((unsigned char *)addr)[SPX_OFFSET_PRF_INDEX], prf_index );
 }

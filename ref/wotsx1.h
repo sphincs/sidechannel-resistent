@@ -2,6 +2,7 @@
 #define WOTSX1_H_ 
 
 #include <string.h>
+#include "prf.h"
 
 /*
  * This is here to provide an interface to the internal wots_gen_leafx1
@@ -15,6 +16,7 @@ struct leaf_info_x1 {
     uint32_t *wots_steps;
     uint32_t leaf_addr[8];
     uint32_t pk_addr[8];
+    struct prf_iter merkle_iter; /* Iterator over the Merkle leaves */
 };
 
 /* Macro to set the leaf_info to something 'benign', that is, it would */

@@ -1,11 +1,11 @@
-PARAMS = sphincs-haraka-128f
-THASH = robust
+PARAMS = sphincs-shake-256f
+THASH = simple
 
 CC=/usr/bin/gcc
-CFLAGS=-Wall -Wextra -Wpedantic -O3 -std=c99 -Wconversion -Wmissing-prototypes -DPARAMS=$(PARAMS) $(EXTRA_CFLAGS)
+CFLAGS=-O3 -std=c99 -Wconversion -Wmissing-prototypes -DPARAMS=$(PARAMS) $(EXTRA_CFLAGS)
 
-SOURCES =          address.c randombytes.c merkle.c wots.c wotsx1.c utils.c utilsx1.c fors.c sign.c
-HEADERS = params.h address.h randombytes.h merkle.h wots.h wotsx1.h utils.h utilsx1.h fors.h api.h  hash.h thash.h
+SOURCES =          address.c randombytes.c merkle.c wots.c wotsx1.c utils.c utilsx1.c fors.c sign.c prf.c f-threshold.c fips202-threshold.c
+HEADERS = params.h address.h randombytes.h merkle.h wots.h wotsx1.h utils.h utilsx1.h fors.h api.h  hash.h thash.h prf.h f-threshold.h fips202-threshold.h
 
 ifneq (,$(findstring shake,$(PARAMS)))
 	SOURCES += fips202.c hash_shake.c thash_shake_$(THASH).c
@@ -56,6 +56,9 @@ test/haraka: test/haraka.c $(filter-out haraka.c,$(SOURCES)) $(HEADERS)
 
 test/%.exec: test/%
 	@$<
+
+my_test: my_test.c $(SOURCES) $(HEADERS)
+	$(CC) $(CFLAGS) -o $@ $(SOURCES) $< $(LDLIBS)
 
 clean:
 	-$(RM) $(TESTS)

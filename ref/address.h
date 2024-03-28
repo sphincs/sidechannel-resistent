@@ -12,9 +12,14 @@
 #define SPX_ADDR_TYPE_FORSPK 4
 #define SPX_ADDR_TYPE_WOTSPRF 5
 #define SPX_ADDR_TYPE_FORSPRF 6
+#define SPX_ADDR_TYPE_PRF_MERKLE 7
+#define SPX_ADDR_TYPE_PRF_FORS 8
 
 #define set_layer_addr SPX_NAMESPACE(set_layer_addr)
 void set_layer_addr(uint32_t addr[8], uint32_t layer);
+
+#define get_layer_addr SPX_NAMESPACE(get_layer_addr)
+uint32_t get_layer_addr(uint32_t addr[8]);
 
 #define set_tree_addr SPX_NAMESPACE(set_tree_addr)
 void set_tree_addr(uint32_t addr[8], uint64_t tree);
@@ -47,5 +52,8 @@ void set_tree_height(uint32_t addr[8], uint32_t tree_height);
 
 #define set_tree_index SPX_NAMESPACE(set_tree_index)
 void set_tree_index(uint32_t addr[8], uint32_t tree_index);
+
+#define set_prf_index SPX_NAMESPACE(set_prf_index)
+void set_prf_index(uint32_t addr[8], uint32_t prf_index);
 
 #endif
